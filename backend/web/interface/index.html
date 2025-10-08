@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMTP Filter - Панель управления</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .stat-card { background: #eee; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .btn { display: inline-block; padding: 10px 15px; margin-top: 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Панель управления SMTP фильтра</h1>
+        <div class="stat-card">
+            <h2>Статус системы</h2>
+            <p>Сервер: <span id="server-status">...</span></p>
+            <p>База данных: <span id="db-status">...</span></p>
+            <p>Заблокировано писем: <span id="blocked-count">...</span></p>
+        </div>
+        <a href="/interface/blocked.html" class="btn">Просмотр заблокированных писем</a>
+        <a href="http://localhost:8025" target="_blank" class="btn">Перейти в MailHog</a>
+    </div>
+    <script>
+        async function fetchStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                document.getElementById('server-status').textContent = 'Работает';
+                document.getElementById('db-status').textContent = data.database_status;
+                document.getElementById('blocked-count').textContent = data.blocked_emails_count;
+            } catch (e) {
+                document.getElementById('server-status').textContent = 'Ошибка';
+            }
+        }
+        setInterval(fetchStats, 5000);
+        fetchStats();
+    </script>
+</body>
+</html>

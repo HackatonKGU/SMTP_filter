@@ -1,6 +1,7 @@
 # Порты
 SMTP_PORT = 10025
 FLASK_PORT = 5000
+API_PORT = 8000
 
 # Ollama
 OLLAMA_URL = "http://localhost:11434/api/generate"

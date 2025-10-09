@@ -19,9 +19,9 @@ def _make_ollama_request(text: str, model: str) -> Optional[int]:
         "prompt": prompt,
         "stream": False,
         "options": {
-            "temperature": 0.0,  # Максимально детерминированный ответ
-            "num_predict": 3,    # Минимальный ответ - только цифра
-            "top_p": 0.1,        # Ограничиваем вариативность
+            "temperature": 0.0,
+            "num_predict": 3,
+            "top_p": 0.1,
         }
     }
 
@@ -36,7 +36,6 @@ def _make_ollama_request(text: str, model: str) -> Optional[int]:
         result = response.json()
         answer = result.get("response", "").strip()
         
-        # Извлекаем только первую цифру из ответа
         for char in answer:
             if char in ["0", "1"]:
                 return int(char)
@@ -47,34 +46,24 @@ def _make_ollama_request(text: str, model: str) -> Optional[int]:
         return None
 
 def classify_with_ollama(text: str) -> int:
-    """
-    Классифицирует текст с помощью Ollama.
-    Возвращает 1 (угроза) или 0 (безопасно).
-    Использует резервную модель при ошибке основной.
-    """
+    """Классифицирует текст с помощью Ollama."""
     if not test_ollama_connection():
-        print("❌ Ollama недоступна")
-        return 0  # В случае недоступности считаем письмо безопасным
+        print("Ollama недоступна")
+        return 0
     
-    # Попытка с основной моделью (1.3 ГБ)
     result = _make_ollama_request(text, OLLAMA_MODEL)
     if result is not None:
-        print(f"✅ Классификация выполнена моделью {OLLAMA_MODEL}: {result}")
         return result
     
-    # Попытка с первой резервной моделью
-    print(f"⚠️ Переключение на резервную модель {OLLAMA_FALLBACK_MODEL}")
+    print(f"Переключение на резервную модель {OLLAMA_FALLBACK_MODEL}")
     result = _make_ollama_request(text, OLLAMA_FALLBACK_MODEL)
     if result is not None:
-        print(f"✅ Классификация выполнена резервной моделью {OLLAMA_FALLBACK_MODEL}: {result}")
         return result
     
-    # Попытка с второй резервной моделью
-    print(f"⚠️ Переключение на бэкап модель {OLLAMA_BACKUP_MODEL}")
+    print(f"Переключение на бэкап модель {OLLAMA_BACKUP_MODEL}")
     result = _make_ollama_request(text, OLLAMA_BACKUP_MODEL)
     if result is not None:
-        print(f"✅ Классификация выполнена бэкап моделью {OLLAMA_BACKUP_MODEL}: {result}")
         return result
     
-    print("❌ Все модели недоступны, письмо считается безопасным")
-    return 0  # В случае ошибки считаем письмо безопасным
+    print("Все модели недоступны, письмо считается безопасным")
+    return 0

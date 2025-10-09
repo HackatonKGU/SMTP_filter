@@ -1,7 +1,7 @@
 import subprocess
 import time
-import requests
 import psutil
+import platform
 from pathlib import Path
 from core.config import MAILHOG_PATH, MAILHOG_SMTP_PORT, MAILHOG_WEB_PORT, MAILHOG_HOST
 
@@ -9,14 +9,17 @@ class MailHogManager:
     def __init__(self):
         self.process = None
         self.mailhog_path = Path(MAILHOG_PATH)
-    
+
     def is_running(self) -> bool:
-        """Проверяет, запущен ли MailHog."""
+        """Проверяет, запущен ли MailHog, путем проверки, слушается ли его веб-порт."""
         try:
-            # Проверяем доступность веб-интерфейса
-            response = requests.get(f"http://{MAILHOG_HOST}:{MAILHOG_WEB_PORT}/api/v1/messages", timeout=2)
-            return response.status_code == 200
-        except requests.exceptions.RequestException:
+            # Команда netstat -ano -p tcp | findstr "8025"
+            # является надежным способом для Windows проверить порт.
+            cmd = f'netstat -ano -p tcp | findstr ":{MAILHOG_WEB_PORT}"'
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+            # Если вывод содержит "LISTENING", значит порт занят и MailHog, скорее всего, работает.
+            return "LISTENING" in result.stdout
+        except Exception:
             return False
     
     def find_mailhog_process(self):
